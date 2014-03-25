@@ -16,13 +16,14 @@ import database.Database;
 @SuppressWarnings("synthetic-access")
 public class PalletManagerPane extends BasicPane {
 	private static final long serialVersionUID = 1;
-	private JTextField[] fields;
 	private static final int PRODUCT_TYPE = 0, ORDER_ID = 1,
-			DATE_INTERVAL_START = 2, DATE_INTERVAL_END = 3, PROD_TIME = 4;
+			DATE_INTERVAL_START = 2, DATE_INTERVAL_END = 3;
+	private static final int NBR_FIELDS = 4;
 
 	private static final int SEARCH = 0, BLOCK = 1, UNBLOCK = 2;
-	private static final int NBR_FIELDS = 5, NBR_BUTTONS = 3;
+	private static final int NBR_BUTTONS = 3;
 
+	private JTextField[] fields;
 	private String productType;
 	private String timeIntervalStart;
 	private String timeIntervalEnd;
@@ -52,16 +53,12 @@ public class PalletManagerPane extends BasicPane {
 		texts[DATE_INTERVAL_END] = "Latest production date: ";
 		fields[DATE_INTERVAL_END] = new JTextField(FIELD_LENGTH);
 
-		texts[PROD_TIME] = "Production time: ";
-		fields[PROD_TIME] = new JTextField(FIELD_LENGTH / 2);
-
 		return new InputPanels(texts, fields);
 	}
 
 	public void showDateTimeFormat() {
 		fields[DATE_INTERVAL_START].setText("yyyy-mm-dd");
 		fields[DATE_INTERVAL_END].setText("yyyy-mm-dd");
-		fields[PROD_TIME].setText("hh:mm");
 	}
 
 	@Override
@@ -92,7 +89,6 @@ public class PalletManagerPane extends BasicPane {
 		productType = fields[PRODUCT_TYPE].getText();
 		timeIntervalStart = fields[DATE_INTERVAL_START].getText();
 		timeIntervalEnd = fields[DATE_INTERVAL_END].getText();
-
 		productOK = !productType.equals("");
 		timeStartOK = Util.isDate(timeIntervalStart);
 		timeEndOK = Util.isDate(timeIntervalEnd);
@@ -102,6 +98,7 @@ public class PalletManagerPane extends BasicPane {
 		public void actionPerformed(ActionEvent e) {
 			readInput();
 			String result;
+
 			if (productOK && timeStartOK && timeEndOK) {
 				result = db.getPalletInfo(productType, timeIntervalStart,
 						timeIntervalEnd);
@@ -147,5 +144,4 @@ public class PalletManagerPane extends BasicPane {
 			resultArea.setText(result);
 		}
 	}
-
 }
