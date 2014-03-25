@@ -50,14 +50,24 @@ public class Database {
 	 * Register a number of produced pallets and updates the ingredient database
 	 * accordingly.
 	 */
-	public String registerProducedPallets(String product,
-			String productionDate, int nbrPallets) {
-
+	public String registerProducedPallets(String productName, String orderID,
+			String productionDate, String productionTime, int amount) {
+		String statement;
+		PreparedStatement prepStatement;
 		try {
-			String statement = "insert into pallets (prodTime,prodDate,delivDate,delivTime) values(?,?,?,?)";
-			PreparedStatement preparedStatement = conn
+			
+			
+			//minska ingrediensmängd
+			
+			statement = "insert into pallets "
+					+ "(cookieName,orderID,productionDate,"
+					+ "productionTime,delivDate,deliveryTime)"
+					+ " values(?,?,?,?,?,?)";
+			prepStatement = conn
 					.prepareStatement(statement);
-			preparedStatement.setString(1,"blabla");
+			
+			
+			prepStatement.setString(1, "blabla");
 			conn.commit();
 		} catch (SQLException e) {
 			e.printStackTrace();

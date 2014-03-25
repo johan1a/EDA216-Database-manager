@@ -3,6 +3,7 @@ package gui;
 import javax.swing.*;
 import javax.swing.border.*;
 
+import se.datadosen.component.RiverLayout;
 import database.Database;
 
 import java.awt.*;
@@ -16,93 +17,44 @@ import java.awt.*;
  * The class contains a reference to the database object, so subclasses can
  * communicate with the database.
  */
-public class BasicPane extends JPanel {
+public abstract class BasicPane extends JPanel {
 	private static final long serialVersionUID = 1;
-	/**
-	 * The database object.
-	 */
+	protected static final int FIELD_LENGTH = 8;
 	protected Database db;
-	
-
-	/**
-	 * A label which is intended to contain a message text.
-	 */
-
+	protected JTextField[] fields;
 	private JTextArea resultArea;
 
-	/**
-	 * Create a BasicPane object.
-	 *
-	 * @param db
-	 *            The database object.
-	 */
 	public BasicPane(Database db) {
 		this.db = db;
-		resultArea = createResultPanel();
-		
-		
-		
 		setLayout(new BorderLayout());
-		JComponent inputPanel = createInputPanel();
-		
+
+		resultArea = createResultPanel();
+		InputPanels inputPanel = createInputPanel();
 		JComponent buttonPanel = createButtonPanel();
 
 		JPanel bottomPanel = new JPanel();
-		bottomPanel.setLayout(new GridLayout(2, 1));
+		bottomPanel.setLayout(new RiverLayout());
 		bottomPanel.add(inputPanel);
-		bottomPanel.add(buttonPanel);
+		bottomPanel.add("br", buttonPanel);
 
-		add(resultArea,BorderLayout.CENTER);
-		add(bottomPanel,BorderLayout.SOUTH);
+		add(resultArea, BorderLayout.CENTER);
+		add(bottomPanel, BorderLayout.SOUTH);
 	}
 
-	/**
-	 * Create the top panel. Should be overridden by subclasses.
-	 *
-	 * @return An empty panel.
-	 */
-	public JComponent createInputPanel() {
-		return new JPanel();
-	}
+	public abstract InputPanels createInputPanel();
 
-	/**
-	 * Create the middle panel. Should be overridden by subclasses.
-	 *
-	 * @return An empty panel.
-	 */
-	public JTextArea createResultPanel() {
+	public static JTextArea createResultPanel() {
 		return new JTextArea();
 	}
 
-	/**
-	 * Create the bottom panel. Should be overridden by subclasses.
-	 *
-	 * @return An empty panel.
-	 */
-	public JComponent createButtonPanel() {
-		return new JPanel();
-	}
+	public abstract JComponent createButtonPanel();
 
-	/**
-	 * Perform the entry actions of the pane. Empty here, should be overridden
-	 * by subclasses.
-	 */
-	public void entryActions() {
-	}
+	public abstract void entryActions();
 
-	/**
-	 * Display a message.
-	 *
-	 * @param msg
-	 *            The message to display.
-	 */
 	public void displayMessage(String msg) {
 		resultArea.setText(msg);
 	}
 
-	/**
-	 * Clear the message line.
-	 */
 	public void clearMessage() {
 		resultArea.setText(" ");
 	}

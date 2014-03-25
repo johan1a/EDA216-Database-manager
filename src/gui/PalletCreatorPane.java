@@ -15,44 +15,43 @@ import database.Database;
 @SuppressWarnings("synthetic-access")
 public class PalletCreatorPane extends BasicPane {
 	private static final long serialVersionUID = 1;
-	private JTextField[] fields;
-	private static final int PRODUCT_TYPE = 0, PROD_DATE = 1,
-			PALLET_AMOUNT = 2, LOCATION = 3;
-	private static final int NBR_FIELDS = 4;
+	protected static final int NBR_FIELDS = 5;
+	protected static final int PRODUCT_TYPE = 0, ORDER_ID = 1, PROD_DATE = 2,
+			PROD_TIME = 3, PALLET_AMOUNT = 4;
 	private String productType;
+	private String orderID;
 	private String prodDate;
+	private String prodTime;
 	private String result;
+
 	private int nbrPallets;
 	private JTextArea resultArea;
-	private String palletLocation;
 
 	public PalletCreatorPane(Database db) {
 		super(db);
+		
 	}
 
 	@Override
-	public JTextArea createResultPanel() {
-		resultArea = new JTextArea();
-		return resultArea;
-	}
-
-	@Override
-	public JComponent createInputPanel() {
+	public InputPanels createInputPanel() {
 		String[] texts = new String[NBR_FIELDS];
 		fields = new JTextField[NBR_FIELDS];
-		
+
 		texts[PRODUCT_TYPE] = "Product type: ";
-		fields[PRODUCT_TYPE] = new JTextField(20);
+		fields[PRODUCT_TYPE] = new JTextField(FIELD_LENGTH);
+
+		texts[ORDER_ID] = "Order ID: ";
+		fields[ORDER_ID] = new JTextField(FIELD_LENGTH);
 
 		texts[PROD_DATE] = "Production date: ";
-		fields[PROD_DATE] = new JTextField(10);
-		fields[PROD_DATE].setText("yyyy-mm-dd");
+		fields[PROD_DATE] = new JTextField(FIELD_LENGTH);
 
-		texts[PALLET_AMOUNT] = "Amount: ";
-		fields[PALLET_AMOUNT] = new JTextField(5);
+		texts[PROD_TIME] = "Production time: ";
+		fields[PROD_TIME] = new JTextField(FIELD_LENGTH / 2);
 
-		texts[LOCATION] = "Pallet location: ";
-		fields[LOCATION] = new JTextField(5);
+		texts[PALLET_AMOUNT] = "Number of pallets: ";
+		fields[PALLET_AMOUNT] = new JTextField(FIELD_LENGTH);
+		
 		return new InputPanels(texts, fields);
 	}
 
@@ -69,22 +68,29 @@ public class PalletCreatorPane extends BasicPane {
 
 	public void entryActions() {
 		clearMessage();
+		showDateTimeFormat();
+	}
+
+	public void showDateTimeFormat() {
 		fields[PROD_DATE].setText("yyyy-mm-dd");
+		fields[PROD_TIME].setText("hh:mm");
 	}
 
 	public void readInput() {
 		productType = fields[PRODUCT_TYPE].getText();
+		orderID = fields[ORDER_ID].getText();
 		prodDate = fields[PROD_DATE].getText();
+		prodTime = fields[PROD_TIME].getText();
 		nbrPallets = Integer.parseInt(fields[PALLET_AMOUNT].getText());
-		palletLocation = fields[LOCATION].getText(); //TODO behövs denna?
 	}
 
 	class PalletCreationHandler implements ActionListener {
+
 		public void actionPerformed(ActionEvent e) {
 			readInput();
 			if (Util.isDate(prodDate)) {
-				result = db.registerProducedPallets(productType, prodDate,
-						nbrPallets);
+				result = db.registerProducedPallets(productType, orderID,
+						prodDate, prodTime, nbrPallets);
 				resultArea.setText(result);
 			}
 		}

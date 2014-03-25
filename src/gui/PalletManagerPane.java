@@ -17,10 +17,11 @@ import database.Database;
 public class PalletManagerPane extends BasicPane {
 	private static final long serialVersionUID = 1;
 	private JTextField[] fields;
-	private static final int PRODUCT_TYPE = 0, TIME_INTERVAL_START = 1,
-			TIME_INTERVAL_END = 2;
+	private static final int PRODUCT_TYPE = 0, ORDER_ID = 1,
+			DATE_INTERVAL_START = 2, DATE_INTERVAL_END = 3, PROD_TIME = 4;
+
 	private static final int SEARCH = 0, BLOCK = 1, UNBLOCK = 2;
-	private static final int NBR_FIELDS = 3, NBR_BUTTONS = 3;
+	private static final int NBR_FIELDS = 5, NBR_BUTTONS = 3;
 
 	private String productType;
 	private String timeIntervalStart;
@@ -35,27 +36,32 @@ public class PalletManagerPane extends BasicPane {
 	}
 
 	@Override
-	public JTextArea createResultPanel() {
-		JTextArea textArea = new JTextArea();
-		return textArea;
+	public InputPanels createInputPanel() {
+		String[] texts = new String[NBR_FIELDS];
+		fields = new JTextField[NBR_FIELDS];
+
+		texts[PRODUCT_TYPE] = "Product type: ";
+		fields[PRODUCT_TYPE] = new JTextField(FIELD_LENGTH);
+
+		texts[ORDER_ID] = "Order ID: ";
+		fields[ORDER_ID] = new JTextField(FIELD_LENGTH);
+
+		texts[DATE_INTERVAL_START] = "Earliest production date: ";
+		fields[DATE_INTERVAL_START] = new JTextField(FIELD_LENGTH);
+
+		texts[DATE_INTERVAL_END] = "Latest production date: ";
+		fields[DATE_INTERVAL_END] = new JTextField(FIELD_LENGTH);
+
+		texts[PROD_TIME] = "Production time: ";
+		fields[PROD_TIME] = new JTextField(FIELD_LENGTH / 2);
+
+		return new InputPanels(texts, fields);
 	}
 
-	@Override
-	public JComponent createInputPanel() {
-		String[] texts = new String[NBR_FIELDS];
-		texts[PRODUCT_TYPE] = "Product type: ";
-		fields = new JTextField[NBR_FIELDS];
-		fields[PRODUCT_TYPE] = new JTextField(20);
-
-		texts[TIME_INTERVAL_START] = "Produced between: ";
-		fields[TIME_INTERVAL_START] = new JTextField(10);
-
-		texts[TIME_INTERVAL_END] = "and ";
-		fields[TIME_INTERVAL_END] = new JTextField(10);
-
-		fields[TIME_INTERVAL_START].setText("yyyy-mm-dd");
-		fields[TIME_INTERVAL_END].setText("yyyy-mm-dd");
-		return new InputPanels(texts, fields);
+	public void showDateTimeFormat() {
+		fields[DATE_INTERVAL_START].setText("yyyy-mm-dd");
+		fields[DATE_INTERVAL_END].setText("yyyy-mm-dd");
+		fields[PROD_TIME].setText("hh:mm");
 	}
 
 	@Override
@@ -79,14 +85,13 @@ public class PalletManagerPane extends BasicPane {
 
 	public void entryActions() {
 		clearMessage();
-		fields[TIME_INTERVAL_START].setText("yyyy-mm-dd");
-		fields[TIME_INTERVAL_END].setText("yyyy-mm-dd");
+		showDateTimeFormat();
 	}
 
 	public void readInput() {
 		productType = fields[PRODUCT_TYPE].getText();
-		timeIntervalStart = fields[TIME_INTERVAL_START].getText();
-		timeIntervalEnd = fields[TIME_INTERVAL_END].getText();
+		timeIntervalStart = fields[DATE_INTERVAL_START].getText();
+		timeIntervalEnd = fields[DATE_INTERVAL_END].getText();
 
 		productOK = !productType.equals("");
 		timeStartOK = Util.isDate(timeIntervalStart);

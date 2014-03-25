@@ -1,22 +1,26 @@
 package gui;
 
-import javax.swing.*;
+import java.awt.Container;
+import java.awt.GridLayout;
 
-import java.awt.*;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 
-public class InputPanels extends JPanel {
+import se.datadosen.component.RiverLayout;
+
+public class InputPanels extends Container {
 	private static final long serialVersionUID = 1;
 
 	public InputPanels(String[] texts, JTextField[] fields) {
-		setLayout(new GridLayout(texts.length, 1));
-		JPanel panel = new JPanel();
-		panel.setLayout(new GridLayout(1, texts.length));
+
+		setLayout(new RiverLayout());
 		for (int i = 0; i < texts.length; i++) {
 			JLabel label = new JLabel(texts[i]);
-			label.setHorizontalAlignment(SwingConstants.CENTER);
-			panel.add(label);
-			panel.add(fields[i]);
-			add(panel);
+			add("br",label);
+			add("tab",fields[i]);
+			
 		}
 	}
 }
