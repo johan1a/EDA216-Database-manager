@@ -14,7 +14,6 @@ public class GUI {
 
 	public GUI(Database db) {
 		this.db = db;
-
 		JFrame frame = new JFrame("Cookie Database");
 		tabbedPane = new JTabbedPane();
 
@@ -27,10 +26,9 @@ public class GUI {
 				"Simulate pallet creation");
 
 		frame.getContentPane().add(tabbedPane, BorderLayout.CENTER);
-
 		tabbedPane.addChangeListener(new ChangeHandler());
-		frame.addWindowListener(new WindowHandler());
 
+		frame.addWindowListener(new WindowHandler());
 		frame.setSize(800, 600);
 		frame.setVisible(true);
 
@@ -44,6 +42,7 @@ public class GUI {
 	}
 
 	class ChangeHandler implements ChangeListener {
+		@SuppressWarnings("synthetic-access")
 		public void stateChanged(ChangeEvent e) {
 			BasicPane selectedPane = (BasicPane) tabbedPane
 					.getSelectedComponent();
@@ -52,6 +51,7 @@ public class GUI {
 	}
 
 	class WindowHandler extends WindowAdapter {
+		@SuppressWarnings("synthetic-access")
 		public void windowClosing(WindowEvent e) {
 			db.closeConnection();
 			System.exit(0);

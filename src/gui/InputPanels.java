@@ -1,12 +1,9 @@
 package gui;
 
 import java.awt.Container;
-import java.awt.GridLayout;
 
 import javax.swing.JLabel;
-import javax.swing.JPanel;
 import javax.swing.JTextField;
-import javax.swing.SwingConstants;
 
 import se.datadosen.component.RiverLayout;
 

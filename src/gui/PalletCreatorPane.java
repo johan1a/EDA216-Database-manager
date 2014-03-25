@@ -9,8 +9,6 @@ import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
-import org.joda.time.DateTime;
-
 import util.Util;
 import database.Database;
 
@@ -31,7 +29,6 @@ public class PalletCreatorPane extends BasicPane {
 
 	public PalletCreatorPane(Database db) {
 		super(db);
-
 	}
 
 	@Override
@@ -84,7 +81,6 @@ public class PalletCreatorPane extends BasicPane {
 		prodDate = fields[PROD_DATE].getText();
 		prodTime = fields[PROD_TIME].getText();
 		nbrPallets = Integer.parseInt(fields[PALLET_AMOUNT].getText());
-
 	}
 
 	class PalletCreationHandler implements ActionListener {
@@ -95,7 +91,6 @@ public class PalletCreatorPane extends BasicPane {
 			result = db.registerProducedPallets(productType, orderID, prodDate,
 					prodTime, nbrPallets);
 			resultArea.setText(result);
-
 		}
 
 		private void checkTimeInput() {

@@ -53,20 +53,17 @@ public class Database {
 	public String registerProducedPallets(String productName, String orderID,
 			String productionDate, String productionTime, int amount) {
 		String statement;
-		PreparedStatement prepStatement;
+		PreparedStatement prepStatement = null;
 		try {
-			
-			
-			//minska ingrediensmängd
-			
+
+			// minska ingrediensmängd osv
+
 			statement = "insert into pallets "
 					+ "(cookieName,orderID,productionDate,"
 					+ "productionTime,delivDate,deliveryTime)"
 					+ " values(?,?,?,?,?,?)";
-			prepStatement = conn
-					.prepareStatement(statement);
-			
-			
+			prepStatement = conn.prepareStatement(statement);
+
 			prepStatement.setString(1, "blabla");
 			conn.commit();
 		} catch (SQLException e) {
@@ -76,8 +73,15 @@ public class Database {
 			} catch (SQLException e1) {
 				e1.printStackTrace();
 			}
+		} finally {
+			try {
+				if (prepStatement != null) {
+					prepStatement.close();
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
 		}
-
 		return "";
 	}
 

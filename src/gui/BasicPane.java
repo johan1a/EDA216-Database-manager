@@ -1,22 +1,15 @@
 package gui;
 
-import javax.swing.*;
-import javax.swing.border.*;
+import java.awt.BorderLayout;
+
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
 
 import se.datadosen.component.RiverLayout;
 import database.Database;
 
-import java.awt.*;
-
-/**
- * BasicPane is a pane in the user interface. It consists of two subpanels: the
- * left panel and the right panel. The right panel in turn consist of three
- * panels on top of each other: bottom, middle and top. Subclasses can choose to
- * configure these panels as they wish.
- * <p>
- * The class contains a reference to the database object, so subclasses can
- * communicate with the database.
- */
 public abstract class BasicPane extends JPanel {
 	private static final long serialVersionUID = 1;
 	protected static final int FIELD_LENGTH = 8;
