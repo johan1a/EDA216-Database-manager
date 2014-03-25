@@ -19,12 +19,14 @@ public class PalletManagerPane extends BasicPane {
 	private JTextField[] fields;
 	private static final int PRODUCT_TYPE = 0, TIME_INTERVAL_START = 1,
 			TIME_INTERVAL_END = 2;
-	private static final int NBR_FIELDS = 3;
+	private static final int SEARCH = 0, BLOCK = 1, UNBLOCK = 2;
+	private static final int NBR_FIELDS = 3, NBR_BUTTONS = 3;
+
 	private String productType;
 	private String timeIntervalStart;
 	private String timeIntervalEnd;
 	private AbstractButton resultArea;
-	private boolean prodOK;
+	private boolean productOK;
 	private boolean timeStartOK;
 	private boolean timeEndOK;
 
@@ -50,8 +52,7 @@ public class PalletManagerPane extends BasicPane {
 
 		texts[TIME_INTERVAL_END] = "and ";
 		fields[TIME_INTERVAL_END] = new JTextField(10);
-		
-		
+
 		fields[TIME_INTERVAL_START].setText("yyyy-mm-dd");
 		fields[TIME_INTERVAL_END].setText("yyyy-mm-dd");
 		return new InputPanels(texts, fields);
@@ -60,18 +61,19 @@ public class PalletManagerPane extends BasicPane {
 	@Override
 	public JComponent createButtonPanel() {
 		JPanel buttonPanel = new JPanel();
-		JButton[] buttons = new JButton[2];
+		JButton[] buttons = new JButton[NBR_BUTTONS];
 
-		buttons[0] = new JButton("Search for pallets");
-		buttons[1] = new JButton("Block pallets");
+		buttons[SEARCH] = new JButton("Search for pallets");
+		buttons[BLOCK] = new JButton("Block pallets");
+		buttons[UNBLOCK] = new JButton("Unblock pallets");
 
-		PalletBlockHandler actHand = new PalletBlockHandler();
-		PalletSearchHandler actHand2 = new PalletSearchHandler();
-		buttons[0].addActionListener(actHand);
-		buttons[1].addActionListener(actHand2);
+		buttons[SEARCH].addActionListener(new PalletSearchHandler());
+		buttons[BLOCK].addActionListener(new PalletBlockHandler());
+		buttons[UNBLOCK].addActionListener(new PalletUnBlockHandler());
 
-		buttonPanel.add(buttons[0]);
-		buttonPanel.add(buttons[1]);
+		for (JButton button : buttons) {
+			buttonPanel.add(button);
+		}
 		return buttonPanel;
 	}
 
@@ -86,44 +88,59 @@ public class PalletManagerPane extends BasicPane {
 		timeIntervalStart = fields[TIME_INTERVAL_START].getText();
 		timeIntervalEnd = fields[TIME_INTERVAL_END].getText();
 
-		prodOK = !timeIntervalStart.equals("");
+		productOK = !productType.equals("");
 		timeStartOK = Util.isDate(timeIntervalStart);
 		timeEndOK = Util.isDate(timeIntervalEnd);
 	}
 
-	class PalletBlockHandler implements ActionListener {
-
+	class PalletSearchHandler implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
 			readInput();
 			String result;
-			if (prodOK && timeStartOK && timeEndOK) {
-				result = db.blockPallets(productType, timeIntervalStart,
-						timeIntervalEnd);
-			} else if (prodOK) {
-				result = db.blockPallets(productType);
-			}
-		}
-	}
-
-	class PalletSearchHandler implements ActionListener {
-
-
-
-		public void actionPerformed(ActionEvent e) {
-			readInput();
-
-			String result = "";
-			if (prodOK && timeStartOK && timeEndOK) {
+			if (productOK && timeStartOK && timeEndOK) {
 				result = db.getPalletInfo(productType, timeIntervalStart,
 						timeIntervalEnd);
-			} else if (prodOK) {
+			} else if (productOK) {
 				result = db.getPalletInfo(productType);
 			} else if (timeStartOK && timeEndOK) {
 				result = db.getPalletInfo(timeIntervalStart, timeIntervalEnd);
+			} else {
+				result = "bad input!";
 			}
-			
 			resultArea.setText(result);
 		}
-
 	}
+
+	class PalletBlockHandler implements ActionListener {
+		public void actionPerformed(ActionEvent e) {
+			readInput();
+			String result;
+			if (productOK && timeStartOK && timeEndOK) {
+				result = db.blockPallets(productType, timeIntervalStart,
+						timeIntervalEnd);
+			} else if (productOK) {
+				result = db.blockPallets(productType);
+			} else {
+				result = "bad input!";
+			}
+			resultArea.setText(result);
+		}
+	}
+
+	class PalletUnBlockHandler implements ActionListener {
+		public void actionPerformed(ActionEvent e) {
+			readInput();
+			String result;
+			if (productOK && timeStartOK && timeEndOK) {
+				result = db.unblockPallets(productType, timeIntervalStart,
+						timeIntervalEnd);
+			} else if (productOK) {
+				result = db.unblockPallets(productType);
+			} else {
+				result = "bad input!";
+			}
+			resultArea.setText(result);
+		}
+	}
+
 }

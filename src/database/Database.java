@@ -2,10 +2,11 @@ package database;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 import cookieProduction.Order;
-import cookieProduction.Recipe;
 
 @SuppressWarnings({ "unused", "static-method" })
 public class Database {
@@ -15,18 +16,6 @@ public class Database {
 		conn = null;
 	}
 
-	/**
-	 * Open a connection to the database, using the specified user name and
-	 * password.
-	 * 
-	 * @param userName
-	 *            The user name.
-	 * @param password
-	 *            The user's password.
-	 * @return true if the connection succeeded, false if the supplied user name
-	 *         and password were not recognized. Returns false also if the JDBC
-	 *         driver isn't found.
-	 */
 	public boolean openConnection(String userName, String password) {
 		try {
 			Class.forName("com.mysql.jdbc.Driver");
@@ -43,9 +32,6 @@ public class Database {
 		return true;
 	}
 
-	/**
-	 * Close the connection to the database.
-	 */
 	public void closeConnection() {
 		try {
 			if (conn != null) {
@@ -60,28 +46,28 @@ public class Database {
 		return conn != null;
 	}
 
-	/* Places a new order. */
-	public void createNewOrder(Order order) {
-	}
-
-	/* Marks the order with the given order number as complete. */
-	public void markOrderAsComplete(int orderNbr) {
-	}
-
-	/*
-	 * Returns info about all orders that are to be delivered in the given time
-	 * interval.
-	 */
-	public String getDueOrders(int timeIntervalStart, int timeIntervalEnd) {
-		return "";
-	}
-
 	/*
 	 * Register a number of produced pallets and updates the ingredient database
 	 * accordingly.
 	 */
 	public String registerProducedPallets(String product,
 			String productionDate, int nbrPallets) {
+
+		try {
+			String statement = "insert into pallets (prodTime,prodDate,delivDate,delivTime) values(?,?,?,?)";
+			PreparedStatement preparedStatement = conn
+					.prepareStatement(statement);
+			preparedStatement.setString(1,"blabla");
+			conn.commit();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			try {
+				conn.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+		}
+
 		return "";
 	}
 
@@ -144,13 +130,30 @@ public class Database {
 		return "";
 	}
 
-	/* Returns all blocked products. */
-	public String getBlockedProducts() {
+	/*
+	 * Unlocks all pallets containing the given product made in the given time
+	 * interval.
+	 */
+	public String unblockPallets(String product) {
+		return "";
+	}
+
+	/*
+	 * Unlocks all pallets containing the given product made in the given time
+	 * interval.
+	 */
+	public String unblockPallets(String product, String timeIntervalStart,
+			String timeIntervalEnd) {
 		return "";
 	}
 
 	/* Returns all blocked pallets. */
 	public String getBlockedPallets() {
+		return "";
+	}
+
+	/* Returns all blocked products. */
+	public String getBlockedProducts() {
 		return "";
 	}
 
@@ -172,20 +175,15 @@ public class Database {
 	}
 
 	/*
-	 * Returns the time of the last delivery, and the delivered amount of the
-	 * ingredient.
+	 * Returns the amount of the given ingredient left in the ingredient
+	 * storage.
 	 */
-	public String getIngredientLastDeliveryInfo(String ingredient) {
-		return "";
+	public int decrementIngredientAmount(String ingredient, int amount) {
+		return 0;
 	}
 
 	/* Returns the recipe for the given product. */
 	public String getRecipe(String product) {
 		return "";
 	}
-
-	/* Updates the recipe for the given product. */
-	public void updateRecipe(String product, Recipe recipe) {
-	}
-
 }
