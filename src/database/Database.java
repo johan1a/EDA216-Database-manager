@@ -60,7 +60,7 @@ public class Database {
 		try {
 			conn.setAutoCommit(false);
 
-			int insertResult, updateIngredientsResult;
+			int insertResult;
 			// TODO behöver kanske kolla resultatkoderna...
 			for (int i = 0; i < nbrPallets; i++) {
 				insertResult = insertNewPallet(productName, orderID,
@@ -77,7 +77,6 @@ public class Database {
 			rollback();
 			result = "An error occured. Insertion unsuccesful.";
 		}
-
 		return result;
 	}
 
@@ -144,8 +143,9 @@ public class Database {
 			for (Map.Entry<String, Float> entry : ingredientAmounts.entrySet()) {
 				prepStatement.setFloat(1, entry.getValue());
 				prepStatement.setString(2, entry.getKey());
+				prepStatement.executeUpdate();
 			}
-			prepStatement.executeUpdate();
+
 		} catch (SQLException e) {
 			e.printStackTrace();
 			close(prepStatement);
