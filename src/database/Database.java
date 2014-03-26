@@ -1,6 +1,5 @@
 package database;
 
-import java.sql.Array;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -10,7 +9,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import cookieProduction.Recipe;
+import cookieProduction.Pallet;
+import cookieProduction.PalletList;
 
 @SuppressWarnings({ "unused", "static-method" })
 public class Database {
@@ -75,7 +75,7 @@ public class Database {
 		} catch (SQLException e) {
 			e.printStackTrace();
 			rollback();
-			result = "An error occured. Insertion unsuccesful.";
+			result = "An error occured. Insertion unsuccessful.";
 		}
 		return result;
 	}
@@ -113,7 +113,6 @@ public class Database {
 			prepStatement.setString(6, delivTime);
 
 			result = prepStatement.executeUpdate();
-
 		} catch (SQLException e) {
 			e.printStackTrace();
 			close(prepStatement);
@@ -145,7 +144,6 @@ public class Database {
 				prepStatement.setString(2, entry.getKey());
 				prepStatement.executeUpdate();
 			}
-
 		} catch (SQLException e) {
 			e.printStackTrace();
 			close(prepStatement);
@@ -156,7 +154,8 @@ public class Database {
 
 	/* Returns the recipe for the given product. */
 	@SuppressWarnings("resource")
-	private HashMap<String, Float> getIngredientAmounts(String productName) throws SQLException {
+	private HashMap<String, Float> getIngredientAmounts(String productName)
+			throws SQLException {
 		HashMap<String, Float> ingredients = new HashMap<String, Float>();
 		PreparedStatement prepStatement = null;
 		ResultSet rs = null;
@@ -185,29 +184,16 @@ public class Database {
 		return ingredients;
 	}
 
-	/* Registers any number of delivered Pallets. */
-	public void registeredDeliveredPallets(int orderNbr, String product,
-			int nbrPallets) {
-	}
-
 	/*
-	 * Registers the time of delivery of and info about all pallets delivered to
-	 * the given customer.
+	 * Returns info about all pallets that contain the given product and were
+	 * produced in the given time interval.
 	 */
-	public String getDeliveredPalletInfo(String customer) {
-		return "";
-	}
-
-	/* Returns info regarding the pallet with the palletNbr. */
-	public String getPalletInfo(int palletNbr) {
-		return "";
-	}
-
-	/*
-	 * Returns info about all pallets that contain the given product.
-	 */
-	public String getPalletInfo(String productType) {
-		return "";
+	public String getPalletInfo(String productType, String timeIntervalStart,
+			String timeIntervalEnd) {
+		String statement = "select * from pallets where productType = "
+				+ productType + " and productionDate > " + timeIntervalStart
+				+ "and productionDate < " + timeIntervalEnd;
+		return getPalletInfoInternal(statement);
 	}
 
 	/*
@@ -215,14 +201,60 @@ public class Database {
 	 * interval.
 	 */
 	public String getPalletInfo(String timeIntervalStart, String timeIntervalEnd) {
-		return "";
+		String statement = "select * from pallets " + "where productionDate > "
+				+ timeIntervalStart + "and productionDate < " + timeIntervalEnd;
+		return getPalletInfoInternal(statement);
 	}
 
 	/*
-	 * Returns info about all pallets that contain the given product and were
-	 * produced in the given time interval.
+	 * Returns info about all pallets that contain the given product.
 	 */
-	public String getPalletInfo(String productType, String timeIntervalStart,
+	public String getPalletInfo(String productType) {
+		String statement = "select * from pallets where productType = "
+				+ productType;
+		return getPalletInfoInternal(statement);
+	}
+
+	private String getPalletInfoInternal(String statement) {
+		PreparedStatement prepStatement = null;
+		ResultSet rs = null;
+		PalletList pallets = new PalletList();
+		String result;
+		try {
+			conn.setAutoCommit(false);
+			prepStatement = conn.prepareStatement(statement);
+			rs = prepStatement.executeQuery();
+
+			while (!rs.isLast()) {
+				rs.next();
+
+				/* getString kanske inte funkar */
+				pallets.add(new Pallet(rs.getString("barCodeID"), rs
+						.getString("cookieName"), rs.getString("orderID"), rs
+						.getString("productionDate"), rs
+						.getString("productionTime"), rs
+						.getString("deliveryDate"), rs
+						.getString("deliveryTime")));
+			}
+
+			conn.commit();
+			result = pallets.toString();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			rollback();
+			result = "An error occured. Query unsuccessful.";
+		} finally {
+			close(prepStatement);
+			close(rs);
+		}
+		return result;
+	}
+
+	/*
+	 * Blocks all pallets containing the given product made in the given time
+	 * interval.
+	 */
+	public String blockPallets(String product, String timeIntervalStart,
 			String timeIntervalEnd) {
 		return "";
 	}
@@ -236,10 +268,10 @@ public class Database {
 	}
 
 	/*
-	 * Blocks all pallets containing the given product made in the given time
+	 * Unlocks all pallets containing the given product made in the given time
 	 * interval.
 	 */
-	public String blockPallets(String product, String timeIntervalStart,
+	public String unblockPallets(String product, String timeIntervalStart,
 			String timeIntervalEnd) {
 		return "";
 	}
@@ -252,15 +284,6 @@ public class Database {
 		return "";
 	}
 
-	/*
-	 * Unlocks all pallets containing the given product made in the given time
-	 * interval.
-	 */
-	public String unblockPallets(String product, String timeIntervalStart,
-			String timeIntervalEnd) {
-		return "";
-	}
-
 	/* Returns all blocked pallets. */
 	public String getBlockedPallets() {
 		return "";
@@ -269,15 +292,6 @@ public class Database {
 	/* Returns all blocked products. */
 	public String getBlockedProducts() {
 		return "";
-	}
-
-	/*
-	 * Returns the number of produced pallets of the given product type in the
-	 * given time interval.
-	 */
-	public int getNbrProducedPallets(String product, int timeIntervalStart,
-			int timeIntervalEnd) {
-		return 0;
 	}
 
 	/*
