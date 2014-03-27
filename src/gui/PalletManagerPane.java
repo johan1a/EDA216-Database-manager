@@ -116,21 +116,10 @@ public class PalletManagerPane extends BasicPane {
 			readInput();
 			String result;
 
-			if (timeIntervalStart.length() > 0 || timeIntervalEnd.length() > 0) {
-				if (Util.isDate(timeIntervalStart)
-						&& Util.isDate(timeIntervalEnd)) {
-					if (foundProductNameInput) {
-						result = db.blockPallets(productType,
-								timeIntervalStart, timeIntervalEnd);
-					} else {
-						result = db.blockPallets(timeIntervalStart,
-								timeIntervalEnd);
-					}
-				} else {
-					result = "bad input!";
-				}
-			} else if (foundProductNameInput) {
-				result = db.blockPallets(productType);
+			if (foundProductNameInput && Util.isDate(timeIntervalStart)
+					&& Util.isDate(timeIntervalEnd)) {
+				result = db.blockPallets(productType, timeIntervalStart,
+						timeIntervalEnd);
 			} else {
 				result = "bad input!";
 			}

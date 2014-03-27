@@ -210,7 +210,7 @@ public class Database {
 	}
 
 	private String getPalletInfoInternal(String statement) {
-		PreparedStatement prepStatement = null;
+		PreparedStatement prepStatement = null, prepBlockStatement = null;
 		ResultSet rs = null;
 		PalletList pallets = new PalletList();
 		String result;
@@ -219,13 +219,31 @@ public class Database {
 			prepStatement = conn.prepareStatement(statement);
 			rs = prepStatement.executeQuery();
 
+			String productionDate, productName, blockStatus;
+
+			String blockQuery = "select * from blockedProducts where cookieName = ? "
+					+ "and intervalStart < ? and intervalEnd > ?";
+			ResultSet blockRS;
 			while (rs.next()) {
 
-				/* getString kanske inte funkar */
-				pallets.add(new Pallet(rs.getString("barCodeID"), rs
-						.getString("cookieName"), rs.getString("orderID"), rs
-						.getString("productionDate"), rs
-						.getString("deliveryDate")));
+				productionDate = rs.getString("productionDate");
+				productName = rs.getString("cookieName");
+
+				prepBlockStatement = conn.prepareStatement(blockQuery);
+				prepBlockStatement.setString(1, productName);
+				prepBlockStatement.setString(2, productionDate);
+				prepBlockStatement.setString(3, productionDate);
+
+				blockRS = prepBlockStatement.executeQuery();
+				if (!blockRS.next()) {
+					blockStatus = "Not blocked";
+				} else {
+					blockStatus = "Blocked";
+				}
+
+				pallets.add(new Pallet(rs.getString("barCodeID"), productName,
+						rs.getString("orderID"), "productionDate", rs
+								.getString("deliveryDate"), blockStatus));
 			}
 
 			conn.commit();
@@ -240,6 +258,7 @@ public class Database {
 			result = "An error occured. Query unsuccessful.";
 		} finally {
 			close(prepStatement);
+			close(prepBlockStatement);
 			close(rs);
 		}
 
@@ -252,39 +271,27 @@ public class Database {
 	 */
 	public String blockPallets(String product, String timeIntervalStart,
 			String timeIntervalEnd) {
-		return "";
-	}
+		String statement = "insert into BlockedProducts(cookieName, intervalStart, intervalEnd) values(?,?,?)";
+		PreparedStatement pstmt = null;
+		String result;
+		try {
+			conn.setAutoCommit(false);
+			pstmt = conn.prepareStatement(statement);
 
-	/*
-	 * Blocks all pallets containing made in the given time interval.
-	 */
-	public String blockPallets(String timeIntervalStart, String timeIntervalEnd) {
-		return "";
-	}
+			pstmt.setString(1, product);
+			pstmt.setString(2, timeIntervalStart);
+			pstmt.setString(3, timeIntervalEnd);
 
-	/*
-	 * Blocks all pallets containing the given product made in the given time
-	 * interval.
-	 */
-	public String blockPallets(String product) {
-		return "";
-	}
-
-	/*
-	 * Unlocks all pallets containing the given product made in the given time
-	 * interval.
-	 */
-	public String unblockPallets(String product, String timeIntervalStart,
-			String timeIntervalEnd) {
-		return "";
-	}
-
-	/*
-	 * Unlocks all pallets containing the given product made in the given time
-	 * interval.
-	 */
-	public String unblockPallets(String product) {
-		return "";
+			pstmt.executeUpdate();
+			conn.commit();
+			result = "Block successful.";
+		} catch (SQLException e) {
+			e.printStackTrace();
+			rollback();
+			close(pstmt);
+			result = "An error occured.";
+		}
+		return result;
 	}
 
 	/* Returns all blocked pallets. */

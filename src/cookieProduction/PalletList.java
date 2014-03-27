@@ -13,7 +13,7 @@ public class PalletList {
 	public String toString() {
 		StringBuilder result = new StringBuilder("barcodeID ,  cookieName"
 				+ ",  orderID ,  productionDate, "
-				+ " deliveryDate ,  deliveryTime");
+				+ " deliveryDate ,  deliveryTime, block status");
 		result.append("\n");
 		for (Pallet pallet : pallets) {
 			result.append(pallet.toString());
