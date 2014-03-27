@@ -15,9 +15,8 @@ import database.Database;
 @SuppressWarnings("synthetic-access")
 public class PalletCreatorPane extends BasicPane {
 	private static final long serialVersionUID = 1;
-	protected static final int NBR_FIELDS = 3;
-	protected static final int PRODUCT_TYPE = 0, PROD_DATE = 1,
-			PALLET_AMOUNT = 2;
+	protected static final int NBR_FIELDS = 2;
+	protected static final int PROD_DATE = 0, PALLET_AMOUNT = 1;
 	private String productType;
 	private String prodDate;
 
@@ -31,9 +30,6 @@ public class PalletCreatorPane extends BasicPane {
 	public InputPanels createInputPanel() {
 		String[] texts = new String[NBR_FIELDS];
 		fields = new JTextField[NBR_FIELDS];
-
-		texts[PRODUCT_TYPE] = "Product type: ";
-		fields[PRODUCT_TYPE] = new JTextField(FIELD_LENGTH);
 
 		texts[PROD_DATE] = "Production date: ";
 		fields[PROD_DATE] = new JTextField(FIELD_LENGTH);
@@ -58,6 +54,7 @@ public class PalletCreatorPane extends BasicPane {
 	public void entryActions() {
 		clearMessage();
 		showDateTimeFormat();
+		showProductNames();
 	}
 
 	public void showDateTimeFormat() {
@@ -65,8 +62,11 @@ public class PalletCreatorPane extends BasicPane {
 	}
 
 	public void readInput() {
-		productType = fields[PRODUCT_TYPE].getText();
+		productType = list.getSelectedValue();
 		prodDate = fields[PROD_DATE].getText();
+		if (prodDate.equals(DATE_FORMAT)) {
+			prodDate = "";
+		}
 		nbrPallets = fields[PALLET_AMOUNT].getText();
 	}
 

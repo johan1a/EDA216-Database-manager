@@ -14,9 +14,8 @@ import database.Database;
 @SuppressWarnings("synthetic-access")
 public class PalletManagerPane extends BasicPane {
 	private static final long serialVersionUID = 1;
-	private static final int PRODUCT_TYPE = 0, DATE_INTERVAL_START = 1,
-			DATE_INTERVAL_END = 2;
-	private static final int NBR_FIELDS = 3;
+	private static final int DATE_INTERVAL_START = 0, DATE_INTERVAL_END = 1;
+	private static final int NBR_FIELDS = 2;
 
 	private static final int SEARCH = 0, BLOCK = 1;
 	private static final int NBR_BUTTONS = 2;
@@ -36,9 +35,6 @@ public class PalletManagerPane extends BasicPane {
 		String[] texts = new String[NBR_FIELDS];
 		fields = new JTextField[NBR_FIELDS];
 
-		texts[PRODUCT_TYPE] = "Product type: ";
-		fields[PRODUCT_TYPE] = new JTextField(FIELD_LENGTH);
-
 		texts[DATE_INTERVAL_START] = "Earliest production date: ";
 		fields[DATE_INTERVAL_START] = new JTextField(FIELD_LENGTH);
 
@@ -49,8 +45,8 @@ public class PalletManagerPane extends BasicPane {
 	}
 
 	public void showDateTimeFormat() {
-		fields[DATE_INTERVAL_START].setText("yyyy-mm-dd");
-		fields[DATE_INTERVAL_END].setText("yyyy-mm-dd");
+		fields[DATE_INTERVAL_START].setText(DATE_FORMAT);
+		fields[DATE_INTERVAL_END].setText(DATE_FORMAT);
 	}
 
 	@Override
@@ -73,12 +69,21 @@ public class PalletManagerPane extends BasicPane {
 	public void entryActions() {
 		clearMessage();
 		showDateTimeFormat();
+		showProductNames();
 	}
 
 	public void readInput() {
-		productType = fields[PRODUCT_TYPE].getText();
+		productType = list.getSelectedValue();
 		timeIntervalStart = fields[DATE_INTERVAL_START].getText();
 		timeIntervalEnd = fields[DATE_INTERVAL_END].getText();
+
+		if (timeIntervalStart.equals(DATE_FORMAT)) {
+			timeIntervalStart = "";
+		}
+		if (timeIntervalEnd.equals(DATE_FORMAT)) {
+			timeIntervalEnd = "";
+		}
+
 		foundProductNameInput = !productType.equals("");
 
 	}
@@ -99,6 +104,7 @@ public class PalletManagerPane extends BasicPane {
 								timeIntervalEnd);
 					}
 				} else {
+
 					result = "bad input!";
 				}
 			} else if (foundProductNameInput) {

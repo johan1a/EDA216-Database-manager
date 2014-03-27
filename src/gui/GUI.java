@@ -39,6 +39,8 @@ public class GUI {
 		} else {
 			palletManagerPane.displayMessage("Could not connect to database");
 		}
+		
+		palletManagerPane.entryActions();
 	}
 
 	class ChangeHandler implements ChangeListener {

@@ -1,5 +1,6 @@
 package database;
 
+import java.sql.Array;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -69,7 +70,7 @@ public class Database {
 			}
 
 			conn.commit();
-			result = "Successfully inserted " + nbrPallets + " of "
+			result = "Successfully inserted " + nbrPallets + " pallets of "
 					+ " product type " + productName + " into the database.";
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -160,8 +161,7 @@ public class Database {
 
 			String ingredient;
 			float amount;
-			while (!rs.isLast()) {
-				rs.next();
+			while (rs.next()) {
 				ingredients.put(rs.getString("ingredientName"),
 						rs.getFloat("amount"));
 			}
@@ -242,7 +242,7 @@ public class Database {
 				}
 
 				pallets.add(new Pallet(rs.getString("barCodeID"), productName,
-						rs.getString("orderID"), "productionDate", rs
+						rs.getString("orderID"), productionDate, rs
 								.getString("deliveryDate"), blockStatus));
 			}
 
@@ -337,5 +337,40 @@ public class Database {
 		} catch (SQLException e1) {
 			e1.printStackTrace();
 		}
+	}
+
+	/* Returns an array containing all the product names. */
+	public String[] getProductNames() {
+		String statement = "select cookieName from cookies";
+		PreparedStatement prepstmt = null;
+		ResultSet rs = null;
+		String[] result;
+		try {
+			conn.setAutoCommit(false);
+			prepstmt = conn.prepareStatement(statement);
+			rs = prepstmt.executeQuery();
+
+			// funkar ej:
+			// conn.commit();
+			// Array array = rs.getArray("cookieName");
+			// result = (String[]) array.getArray();
+
+			ArrayList<String> temp = new ArrayList<String>();
+			while (rs.next()) {
+				temp.add(rs.getString("cookieName"));
+			}
+			result = new String[temp.size()];
+			for (int i = 0; i < temp.size(); i++) {
+				result[i] = temp.get(i);
+			}
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+			rollback();
+			close(prepstmt);
+			close(rs);
+			result = new String[] { "Fatal error!" };
+		}
+		return result;
 	}
 }
