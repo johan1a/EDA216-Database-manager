@@ -15,17 +15,13 @@ import database.Database;
 @SuppressWarnings("synthetic-access")
 public class PalletCreatorPane extends BasicPane {
 	private static final long serialVersionUID = 1;
-	protected static final int NBR_FIELDS = 5;
-	protected static final int PRODUCT_TYPE = 0, ORDER_ID = 1, PROD_DATE = 2,
-			PROD_TIME = 3, PALLET_AMOUNT = 4;
+	protected static final int NBR_FIELDS = 3;
+	protected static final int PRODUCT_TYPE = 0, PROD_DATE = 1,
+			PALLET_AMOUNT = 2;
 	private String productType;
-	private String orderID;
 	private String prodDate;
-	private String prodTime;
-	private String result;
 
-	private int nbrPallets;
-	private JTextArea resultArea;
+	private String nbrPallets;
 
 	public PalletCreatorPane(Database db) {
 		super(db);
@@ -39,14 +35,8 @@ public class PalletCreatorPane extends BasicPane {
 		texts[PRODUCT_TYPE] = "Product type: ";
 		fields[PRODUCT_TYPE] = new JTextField(FIELD_LENGTH);
 
-		texts[ORDER_ID] = "Order ID: ";
-		fields[ORDER_ID] = new JTextField(FIELD_LENGTH);
-
 		texts[PROD_DATE] = "Production date: ";
 		fields[PROD_DATE] = new JTextField(FIELD_LENGTH);
-
-		texts[PROD_TIME] = "Production time: ";
-		fields[PROD_TIME] = new JTextField(FIELD_LENGTH / 2);
 
 		texts[PALLET_AMOUNT] = "Number of pallets: ";
 		fields[PALLET_AMOUNT] = new JTextField(FIELD_LENGTH);
@@ -72,15 +62,12 @@ public class PalletCreatorPane extends BasicPane {
 
 	public void showDateTimeFormat() {
 		fields[PROD_DATE].setText("yyyy-mm-dd");
-		fields[PROD_TIME].setText("hh:mm");
 	}
 
 	public void readInput() {
 		productType = fields[PRODUCT_TYPE].getText();
-		orderID = fields[ORDER_ID].getText();
 		prodDate = fields[PROD_DATE].getText();
-		prodTime = fields[PROD_TIME].getText();
-		nbrPallets = Integer.parseInt(fields[PALLET_AMOUNT].getText());
+		nbrPallets = fields[PALLET_AMOUNT].getText();
 	}
 
 	class PalletCreationHandler implements ActionListener {
@@ -88,14 +75,22 @@ public class PalletCreatorPane extends BasicPane {
 			readInput();
 			checkTimeInput();
 
-			result = db.registerProducedPallets(productType, orderID, prodDate,
-					prodTime, nbrPallets);
-			resultArea.setText(result);
+			if (productType.length() > 0 && nbrPallets.length() > 0) {
+				String result;
+				try {
+					int nbrPalletsInt = Integer.parseInt(nbrPallets);
+					result = db.registerProducedPallets(productType, prodDate,
+							nbrPalletsInt);
+				} catch (NumberFormatException err) {
+					err.printStackTrace();
+					result = "bad input!";
+				}
+				displayMessage(result);
+			}
 		}
 
 		private void checkTimeInput() {
 			prodDate = Util.checkDate(prodDate);
-			prodTime = Util.checkTime(prodTime);
 		}
 	}
 }

@@ -34,7 +34,7 @@ public class GUI {
 
 		palletManagerPane.displayMessage("Connecting to database ...");
 
-		if (db.openConnection("db04", "yoloswag")) {
+		if (db.openConnection("db57", "dA1AbAs")) {
 			palletManagerPane.displayMessage("Connected to database");
 		} else {
 			palletManagerPane.displayMessage("Could not connect to database");

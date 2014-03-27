@@ -12,8 +12,9 @@ public class PalletList {
 	@Override
 	public String toString() {
 		StringBuilder result = new StringBuilder("barcodeID ,  cookieName"
-				+ ",  orderID ,  productionDate "
-				+ "productionTime ,  deliveryDate ,  deliveryTime");
+				+ ",  orderID ,  productionDate, "
+				+ " deliveryDate ,  deliveryTime");
+		result.append("\n");
 		for (Pallet pallet : pallets) {
 			result.append(pallet.toString());
 			result.append("\n");
@@ -24,5 +25,9 @@ public class PalletList {
 	public void add(Pallet pallet) {
 		pallets.add(pallet);
 
+	}
+
+	public boolean isEmpty() {
+		return pallets.size() == 0;
 	}
 }

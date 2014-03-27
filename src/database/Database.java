@@ -54,17 +54,16 @@ public class Database {
 	 * Register a number of produced pallets and updates the ingredient database
 	 * accordingly.
 	 */
-	public String registerProducedPallets(String productName, String orderID,
-			String productionDate, String productionTime, int nbrPallets) {
+	public String registerProducedPallets(String productName,
+			String productionDate, int nbrPallets) {
 		String result = "";
 		try {
 			conn.setAutoCommit(false);
 
 			int insertResult;
-			// TODO behöver kanske kolla resultatkoderna...
+			// TODO behï¿½ver kanske kolla resultatkoderna...
 			for (int i = 0; i < nbrPallets; i++) {
-				insertResult = insertNewPallet(productName, orderID,
-						productionDate, productionTime);
+				insertResult = insertNewPallet(productName, productionDate);
 
 				decrementProductIngredients(productName);
 			}
@@ -81,36 +80,23 @@ public class Database {
 	}
 
 	@SuppressWarnings("resource")
-	private int insertNewPallet(String productName, String orderID,
-			String productionDate, String productionTime) throws SQLException {
+	private int insertNewPallet(String productName, String productionDate)
+			throws SQLException {
 
 		String statement;
 		PreparedStatement prepStatement = null;
 
-		/* TODO hämta delivery date osv från databasen med hjälp av orderID */
-		String delivDate = "";
-		String delivTime = "";
+		String orderID = "null";
+		String delivDate = "null";
 		int result = 0;
-
 		try {
-			/* TODO behövs semikolon i SQL-satsen? */
-			statement = "insert into pallets "
-					+ "(cookieName,orderID,productionDate,"
-					+ "productionTime,delivDate,deliveryTime)"
-					+ " values(?,?,?,?,?,?)";
-
+			/* TODO behï¿½vs semikolon i SQL-satsen? */
+			statement = "insert into Pallets(cookieName, productionDate)"
+					+ " values(?,?)";
 			prepStatement = conn.prepareStatement(statement);
 
 			prepStatement.setString(1, productName);
-
-			/*
-			 * TODO kanske borde ändra till setInt vid orderID
-			 */
-			prepStatement.setString(2, orderID);
-			prepStatement.setString(3, productionDate);
-			prepStatement.setString(4, productionTime);
-			prepStatement.setString(5, delivDate);
-			prepStatement.setString(6, delivTime);
+			prepStatement.setString(2, productionDate);
 
 			result = prepStatement.executeUpdate();
 		} catch (SQLException e) {
@@ -126,7 +112,7 @@ public class Database {
 	 * Decrements the ingredient storage with the amount it takes to produce a
 	 * pallet of the given product.
 	 * 
-	 * TODO stämmer inte med databasen, ändra table ingredients?
+	 * TODO stï¿½mmer inte med databasen, ï¿½ndra table ingredients?
 	 */
 	@SuppressWarnings("resource")
 	private void decrementProductIngredients(String productName)
@@ -135,13 +121,20 @@ public class Database {
 		PreparedStatement prepStatement = null;
 
 		/* <Ingredient, amount to decrement> */
-		String statement = "update ingredients" + "set amount=amount-?"
-				+ "where ingredientName = ?";
+
+		String statement = "update Ingredients"
+				+ " set amountInStorage = amountInStorage - ?"
+				+ " where ingredientName = ?";
 		try {
 			prepStatement = conn.prepareStatement(statement);
 			for (Map.Entry<String, Float> entry : ingredientAmounts.entrySet()) {
-				prepStatement.setFloat(1, entry.getValue());
-				prepStatement.setString(2, entry.getKey());
+
+				Float amount = entry.getValue();
+				String ingredient = entry.getKey();
+
+				prepStatement.setFloat(1, amount);
+				prepStatement.setString(2, ingredient);
+
 				prepStatement.executeUpdate();
 			}
 		} catch (SQLException e) {
@@ -160,7 +153,7 @@ public class Database {
 		PreparedStatement prepStatement = null;
 		ResultSet rs = null;
 		try {
-			String statement = "select from CookieIngredients where cookieName = ?";
+			String statement = "select ingredientName,amount from CookieIngredients where cookieName = ?";
 			prepStatement = conn.prepareStatement(statement);
 			prepStatement.setString(1, productName);
 			rs = prepStatement.executeQuery();
@@ -190,9 +183,9 @@ public class Database {
 	 */
 	public String getPalletInfo(String productType, String timeIntervalStart,
 			String timeIntervalEnd) {
-		String statement = "select * from pallets where productType = "
-				+ productType + " and productionDate > " + timeIntervalStart
-				+ "and productionDate < " + timeIntervalEnd;
+		String statement = "select * from pallets where cookieName = '"
+				+ productType + "' and productionDate > '" + timeIntervalStart
+				+ "' and productionDate < '" + timeIntervalEnd + "'";
 		return getPalletInfoInternal(statement);
 	}
 
@@ -201,8 +194,9 @@ public class Database {
 	 * interval.
 	 */
 	public String getPalletInfo(String timeIntervalStart, String timeIntervalEnd) {
-		String statement = "select * from pallets " + "where productionDate > "
-				+ timeIntervalStart + "and productionDate < " + timeIntervalEnd;
+		String statement = "select * from pallets where productionDate > '"
+				+ timeIntervalStart + "' and productionDate < '"
+				+ timeIntervalEnd + "'";
 		return getPalletInfoInternal(statement);
 	}
 
@@ -210,8 +204,8 @@ public class Database {
 	 * Returns info about all pallets that contain the given product.
 	 */
 	public String getPalletInfo(String productType) {
-		String statement = "select * from pallets where productType = "
-				+ productType;
+		String statement = "select * from pallets where cookieName = '"
+				+ productType + "'";
 		return getPalletInfoInternal(statement);
 	}
 
@@ -225,20 +219,21 @@ public class Database {
 			prepStatement = conn.prepareStatement(statement);
 			rs = prepStatement.executeQuery();
 
-			while (!rs.isLast()) {
-				rs.next();
+			while (rs.next()) {
 
 				/* getString kanske inte funkar */
 				pallets.add(new Pallet(rs.getString("barCodeID"), rs
 						.getString("cookieName"), rs.getString("orderID"), rs
 						.getString("productionDate"), rs
-						.getString("productionTime"), rs
-						.getString("deliveryDate"), rs
-						.getString("deliveryTime")));
+						.getString("deliveryDate")));
 			}
 
 			conn.commit();
-			result = pallets.toString();
+			if (!pallets.isEmpty()) {
+				result = pallets.toString();
+			} else {
+				result = "No matching pallets were found.";
+			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 			rollback();
@@ -247,6 +242,7 @@ public class Database {
 			close(prepStatement);
 			close(rs);
 		}
+
 		return result;
 	}
 
@@ -256,6 +252,13 @@ public class Database {
 	 */
 	public String blockPallets(String product, String timeIntervalStart,
 			String timeIntervalEnd) {
+		return "";
+	}
+
+	/*
+	 * Blocks all pallets containing made in the given time interval.
+	 */
+	public String blockPallets(String timeIntervalStart, String timeIntervalEnd) {
 		return "";
 	}
 
