@@ -20,6 +20,7 @@ public class CreatePalletTab extends TabWithProductList {
 	protected static final int PROD_DATE = 0, PALLET_AMOUNT = 1;
 
 	private String productType, prodDate, nbrPallets;
+	private boolean foundProductNameInput;
 
 	public CreatePalletTab(Database db, JTextArea resultArea) {
 		super(db, resultArea);
@@ -80,6 +81,8 @@ public class CreatePalletTab extends TabWithProductList {
 			prodDate = "";
 		}
 		nbrPallets = fields[PALLET_AMOUNT].getText();
+
+		foundProductNameInput = productType != null;
 	}
 
 	class PalletCreationHandler implements ActionListener {
@@ -88,7 +91,8 @@ public class CreatePalletTab extends TabWithProductList {
 			readInput();
 			checkTimeInput();
 
-			if (productType.length() > 0 && nbrPallets.length() > 0) {
+			if (foundProductNameInput && nbrPallets.length() > 0
+					&& productType.length() > 0) {
 				String result;
 				try {
 					int nbrPalletsInt = Integer.parseInt(nbrPallets);
