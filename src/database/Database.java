@@ -209,7 +209,18 @@ public class Database {
 		String statement = "select * from pallets";
 		return getPalletInfoInternal(statement, true);
 	}
-
+	
+	 /* Returns info about pallets delivered to the given customer. Optionally
+	 * filters delivered pallets.
+	 */
+	public String getPalletInfoByCustomer(String customerName) {
+		String statement = "select * from pallets p join orders s on p.orderID = s.orderID "
+				+ "where customerName = '"
+				+ customerName
+				+ "' and p.deliveryDate is not null";
+		return getPalletInfoInternal(statement, false);
+	}
+	 
 	private String getPalletInfoInternal(String statement, boolean filterBlocked) {
 		PreparedStatement prepStatement = null, prepBlockStatement = null;
 		ResultSet rs = null, blockRS = null;
@@ -413,20 +424,9 @@ public class Database {
 	}
 
 	public String blockPallet(int palletNbr) {
-		// TODO Ska vi tillåta detta?
+		// TODO Ska vi tillï¿½ta detta?
 		return null;
 	}
 
-	/*
-	 * Returns info about pallets delivered to the given customer. Optionally
-	 * filters delivered pallets.
-	 */
-	public String getPalletInfoByCustomer(String customerName) {
-		String statement = "select * from pallets left outer join orderCookies "
-				+ "where customerName = '"
-				+ customerName
-				+ "' and deliveryDate is not null";
-		return getPalletInfoInternal(statement, false);
-	}
 
 }
