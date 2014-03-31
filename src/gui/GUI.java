@@ -1,5 +1,9 @@
 package gui;
 
+import gui.pane.BasicPane;
+import gui.pane.PalletCreatorPane;
+import gui.pane.PalletManagerPane;
+
 import javax.swing.*;
 import javax.swing.event.*;
 
@@ -14,14 +18,15 @@ public class GUI {
 
 	public GUI(Database db) {
 		this.db = db;
+	
 		JFrame frame = new JFrame("Cookie Database");
 		tabbedPane = new JTabbedPane();
 
 		PalletManagerPane palletManagerPane = new PalletManagerPane(db);
+		PalletCreatorPane palletCreatorPane = new PalletCreatorPane(db);
+		
 		tabbedPane.addTab("Pallet manager", null, palletManagerPane,
 				"Manage pallets");
-
-		PalletCreatorPane palletCreatorPane = new PalletCreatorPane(db);
 		tabbedPane.addTab("Pallet creator", null, palletCreatorPane,
 				"Simulate pallet creation");
 
@@ -39,7 +44,7 @@ public class GUI {
 		} else {
 			palletManagerPane.displayMessage("Could not connect to database");
 		}
-		
+
 		palletManagerPane.entryActions();
 	}
 

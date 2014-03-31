@@ -1,6 +1,5 @@
 package database;
 
-import java.sql.Array;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -13,7 +12,7 @@ import java.util.Map;
 import cookieProduction.Pallet;
 import cookieProduction.PalletList;
 
-@SuppressWarnings({ "unused", "static-method" })
+@SuppressWarnings({ "static-method" })
 public class Database {
 	private Connection conn;
 
@@ -61,11 +60,8 @@ public class Database {
 		try {
 			conn.setAutoCommit(false);
 
-			int insertResult;
-			// TODO behï¿½ver kanske kolla resultatkoderna...
 			for (int i = 0; i < nbrPallets; i++) {
-				insertResult = insertNewPallet(productName, productionDate);
-
+				insertNewPallet(productName, productionDate);
 				decrementProductIngredients(productName);
 			}
 
@@ -81,17 +77,13 @@ public class Database {
 	}
 
 	@SuppressWarnings("resource")
-	private int insertNewPallet(String productName, String productionDate)
+	private void insertNewPallet(String productName, String productionDate)
 			throws SQLException {
 
 		String statement;
 		PreparedStatement prepStatement = null;
 
-		String orderID = "null";
-		String delivDate = "null";
-		int result = 0;
 		try {
-			/* TODO behï¿½vs semikolon i SQL-satsen? */
 			statement = "insert into Pallets(cookieName, productionDate)"
 					+ " values(?,?)";
 			prepStatement = conn.prepareStatement(statement);
@@ -99,29 +91,24 @@ public class Database {
 			prepStatement.setString(1, productName);
 			prepStatement.setString(2, productionDate);
 
-			result = prepStatement.executeUpdate();
+			prepStatement.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
 			close(prepStatement);
 			throw new SQLException();
 		}
 		close(prepStatement);
-		return result;
 	}
 
 	/*
 	 * Decrements the ingredient storage with the amount it takes to produce a
 	 * pallet of the given product.
-	 * 
-	 * TODO stï¿½mmer inte med databasen, ï¿½ndra table ingredients?
 	 */
 	@SuppressWarnings("resource")
 	private void decrementProductIngredients(String productName)
 			throws SQLException {
 		HashMap<String, Float> ingredientAmounts = getIngredientAmounts(productName);
 		PreparedStatement prepStatement = null;
-
-		/* <Ingredient, amount to decrement> */
 
 		String statement = "update Ingredients"
 				+ " set amountInStorage = amountInStorage - ?"
@@ -159,8 +146,6 @@ public class Database {
 			prepStatement.setString(1, productName);
 			rs = prepStatement.executeQuery();
 
-			String ingredient;
-			float amount;
 			while (rs.next()) {
 				ingredients.put(rs.getString("ingredientName"),
 						rs.getFloat("amount"));
@@ -182,38 +167,55 @@ public class Database {
 	 * produced in the given time interval.
 	 */
 	public String getPalletInfo(String productType, String timeIntervalStart,
-			String timeIntervalEnd) {
+			String timeIntervalEnd, boolean filterBlocked) {
 		String statement = "select * from pallets where cookieName = '"
 				+ productType + "' and productionDate > '" + timeIntervalStart
 				+ "' and productionDate < '" + timeIntervalEnd + "'";
-		return getPalletInfoInternal(statement);
+		return getPalletInfoInternal(statement, filterBlocked);
 	}
 
 	/*
 	 * Returns info about all pallets that were produced in the given time
 	 * interval.
 	 */
-	public String getPalletInfo(String timeIntervalStart, String timeIntervalEnd) {
+	public String getPalletInfo(String timeIntervalStart,
+			String timeIntervalEnd, boolean filterBlocked) {
 		String statement = "select * from pallets where productionDate > '"
 				+ timeIntervalStart + "' and productionDate < '"
 				+ timeIntervalEnd + "'";
-		return getPalletInfoInternal(statement);
+		return getPalletInfoInternal(statement, filterBlocked);
 	}
 
 	/*
 	 * Returns info about all pallets that contain the given product.
 	 */
-	public String getPalletInfo(String productType) {
+	public String getPalletInfo(String productType, boolean filterBlocked) {
 		String statement = "select * from pallets where cookieName = '"
 				+ productType + "'";
-		return getPalletInfoInternal(statement);
+		return getPalletInfoInternal(statement, filterBlocked);
 	}
 
-	private String getPalletInfoInternal(String statement) {
+	/*
+	 * Returns info about the pallet with the given barcodeID.
+	 */
+	public String getPalletInfo(int barcodeID) {
+		String statement = "select * from pallets where barcodeID = '"
+				+ barcodeID + "'";
+		return getPalletInfoInternal(statement, false);
+	}
+
+	/* Returns all blocked pallets. */
+	public String getBlockedPallets() {
+		String statement = "select * from pallets";
+		return getPalletInfoInternal(statement, true);
+	}
+
+	private String getPalletInfoInternal(String statement, boolean filterBlocked) {
 		PreparedStatement prepStatement = null, prepBlockStatement = null;
-		ResultSet rs = null;
+		ResultSet rs = null, blockRS = null;
 		PalletList pallets = new PalletList();
 		String result;
+
 		try {
 			conn.setAutoCommit(false);
 			prepStatement = conn.prepareStatement(statement);
@@ -223,7 +225,7 @@ public class Database {
 
 			String blockQuery = "select * from blockedProducts where cookieName = ? "
 					+ "and intervalStart < ? and intervalEnd > ?";
-			ResultSet blockRS;
+
 			while (rs.next()) {
 
 				productionDate = rs.getString("productionDate");
@@ -241,9 +243,12 @@ public class Database {
 					blockStatus = "Blocked";
 				}
 
-				pallets.add(new Pallet(rs.getString("barCodeID"), productName,
-						rs.getString("orderID"), productionDate, rs
-								.getString("deliveryDate"), blockStatus));
+				if (!(filterBlocked && blockStatus.equals("Not blocked"))) {
+					pallets.add(new Pallet(rs.getString("barCodeID"),
+							productName, rs.getString("orderID"),
+							productionDate, rs.getString("deliveryDate"),
+							blockStatus));
+				}
 			}
 
 			conn.commit();
@@ -253,13 +258,61 @@ public class Database {
 				result = "No matching pallets were found.";
 			}
 		} catch (SQLException e) {
-			e.printStackTrace();
 			rollback();
 			result = "An error occured. Query unsuccessful.";
 		} finally {
 			close(prepStatement);
 			close(prepBlockStatement);
+			close(blockRS);
 			close(rs);
+		}
+
+		return result;
+	}
+
+	/* Returns all blocked products. */
+	public String getBlockedProducts() {
+		PreparedStatement prepStatement = null;
+		ResultSet rs = null;
+		String result = "";
+		String statement = "select * from blockedProducts";
+		try {
+			conn.setAutoCommit(false);
+			prepStatement = conn.prepareStatement(statement);
+			rs = prepStatement.executeQuery();
+
+			ArrayList<String> temp = new ArrayList<String>();
+
+			String name, start, end;
+			while (rs.next()) {
+				name = rs.getString("cookieName");
+				try {
+					start = rs.getString("intervalStart");
+				} catch (SQLException e) {
+					start = "not specified";
+				}
+				try {
+					end = rs.getString("intervalEnd");
+				} catch (SQLException e) {
+					end = "not specified";
+				}
+				temp.add(name + ", " + start + ", " + end + "\n");
+			}
+
+			temp.add(0, "Blocked products: " + temp.size() + "\n");
+			temp.add(1,
+					"Cookie name, Block interval start, Block interval end\n");
+
+			for (int i = 0; i < temp.size(); i++) {
+				result += temp.get(i);
+			}
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+			result = "An error occurred...";
+		} finally {
+			close(rs);
+			close(prepStatement);
 		}
 
 		return result;
@@ -288,28 +341,11 @@ public class Database {
 		} catch (SQLException e) {
 			e.printStackTrace();
 			rollback();
-			close(pstmt);
 			result = "An error occured.";
+		} finally {
+			close(pstmt);
 		}
 		return result;
-	}
-
-	/* Returns all blocked pallets. */
-	public String getBlockedPallets() {
-		return "";
-	}
-
-	/* Returns all blocked products. */
-	public String getBlockedProducts() {
-		return "";
-	}
-
-	/*
-	 * Returns the amount of the given ingredient left in the ingredient
-	 * storage.
-	 */
-	public int getIngredientAmount(String ingredient) {
-		return 0;
 	}
 
 	/* Closes the given PreparedStatement */
@@ -325,7 +361,9 @@ public class Database {
 
 	private void close(ResultSet rs) {
 		try {
-			rs.close();
+			if (rs != null) {
+				rs.close();
+			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -373,4 +411,22 @@ public class Database {
 		}
 		return result;
 	}
+
+	public String blockPallet(int palletNbr) {
+		// TODO Ska vi tillåta detta?
+		return null;
+	}
+
+	/*
+	 * Returns info about pallets delivered to the given customer. Optionally
+	 * filters delivered pallets.
+	 */
+	public String getPalletInfoByCustomer(String customerName) {
+		String statement = "select * from pallets left outer join orderCookies "
+				+ "where customerName = '"
+				+ customerName
+				+ "' and deliveryDate is not null";
+		return getPalletInfoInternal(statement, false);
+	}
+
 }

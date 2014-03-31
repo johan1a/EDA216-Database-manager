@@ -11,13 +11,16 @@ public class PalletList {
 
 	@Override
 	public String toString() {
-		StringBuilder result = new StringBuilder("barcodeID ,  cookieName"
-				+ ",  orderID ,  productionDate, "
-				+ " deliveryDate ,  deliveryTime, block status");
+		StringBuilder result = new StringBuilder();
+		result.append("Number of matching pallets: " + pallets.size()+"\n");
+		result.append("barcodeID, cookieName"
+				+ ", orderID, productionDate, "
+				+ "deliveryDate, block status");
 		result.append("\n");
 		for (Pallet pallet : pallets) {
 			result.append(pallet.toString());
 			result.append("\n");
+
 		}
 		return result.toString();
 	}
