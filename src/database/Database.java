@@ -16,16 +16,17 @@ import cookieProduction.PalletList;
 public class Database {
 	private Connection conn;
 
-	public Database() {
+	public Database(String url, String username, String password) {
 		conn = null;
+		openConnection(url, username, password);
 	}
 
-	public boolean openConnection(String userName, String password) {
+	public boolean openConnection(String url, String username,
+			String password) {
 		try {
 			Class.forName("com.mysql.jdbc.Driver");
-			conn = DriverManager.getConnection(
-					"jdbc:mysql://puccini.cs.lth.se/" + userName, userName,
-					password);
+			conn = DriverManager.getConnection("jdbc:mysql://" + url + "/"
+					+ username, username, password);
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;

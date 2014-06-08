@@ -39,7 +39,7 @@ public class GUI {
 
 		palletManagerPane.displayMessage("Connecting to database ...");
 
-		if (db.openConnection("db57", "dA1AbAs")) {
+		if (db.isConnected()) {
 			palletManagerPane.displayMessage("Connected to database");
 		} else {
 			palletManagerPane.displayMessage("Could not connect to database");
