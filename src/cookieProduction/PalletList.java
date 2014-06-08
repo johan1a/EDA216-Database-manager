@@ -15,7 +15,7 @@ public class PalletList {
 		result.append("Number of matching pallets: " + pallets.size()+"\n");
 		result.append("barcodeID, cookieName"
 				+ ", orderID, productionDate, "
-				+ "deliveryDate, block status");
+				+ "deliveryDate, block status, customer name");
 		result.append("\n");
 		for (Pallet pallet : pallets) {
 			result.append(pallet.toString());

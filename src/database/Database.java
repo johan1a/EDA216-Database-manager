@@ -170,8 +170,8 @@ public class Database {
 	public String getPalletInfo(String productType, String timeIntervalStart,
 			String timeIntervalEnd, boolean filterBlocked) {
 		String statement = "select * from pallets where cookieName = '"
-				+ productType + "' and productionDate > '" + timeIntervalStart
-				+ "' and productionDate < '" + timeIntervalEnd + "'";
+				+ productType + "' and productionDate >= '" + timeIntervalStart
+				+ "' and productionDate <= '" + timeIntervalEnd + "'";
 		return getPalletInfoInternal(statement, filterBlocked);
 	}
 
@@ -181,8 +181,8 @@ public class Database {
 	 */
 	public String getPalletInfo(String timeIntervalStart,
 			String timeIntervalEnd, boolean filterBlocked) {
-		String statement = "select * from pallets where productionDate > '"
-				+ timeIntervalStart + "' and productionDate < '"
+		String statement = "select * from pallets where productionDate >= '"
+				+ timeIntervalStart + "' and productionDate <= '"
 				+ timeIntervalEnd + "'";
 		return getPalletInfoInternal(statement, filterBlocked);
 	}
@@ -211,9 +211,21 @@ public class Database {
 		return getPalletInfoInternal(statement, true);
 	}
 
+	/*
+	 * Returns info about pallets delivered to the given customer. Optionally
+	 * filters delivered pallets.
+	 */
+	public String getPalletInfoByCustomer(String customerName) {
+		String statement = "select * from pallets p join orders s on p.orderID = s.orderID "
+				+ "where customerName = '"
+				+ customerName
+				+ "' and p.deliveryDate is not null";
+		return getPalletInfoInternal(statement, false);
+	}
+
 	private String getPalletInfoInternal(String statement, boolean filterBlocked) {
-		PreparedStatement prepStatement = null, prepBlockStatement = null;
-		ResultSet rs = null, blockRS = null;
+		PreparedStatement prepStatement = null, prepBlockStatement = null, prepCustomerStatement;
+		ResultSet rs = null, blockRS = null, customerRS = null;
 		PalletList pallets = new PalletList();
 		String result;
 
@@ -222,15 +234,16 @@ public class Database {
 			prepStatement = conn.prepareStatement(statement);
 			rs = prepStatement.executeQuery();
 
-			String productionDate, productName, blockStatus;
+			String productionDate, productName, blockStatus, customerName, barcodeID;
 
 			String blockQuery = "select * from blockedProducts where cookieName = ? "
-					+ "and intervalStart < ? and intervalEnd > ?";
+					+ "and intervalStart <= ? and intervalEnd >= ?";
+			String customerQuery = "select customerName from pallets p join orders o on p.orderID = o.orderID where barcodeID = ?";
 
 			while (rs.next()) {
-
 				productionDate = rs.getString("productionDate");
 				productName = rs.getString("cookieName");
+				barcodeID = rs.getString("barcodeID");
 
 				prepBlockStatement = conn.prepareStatement(blockQuery);
 				prepBlockStatement.setString(1, productName);
@@ -244,11 +257,21 @@ public class Database {
 					blockStatus = "Blocked";
 				}
 
+				prepCustomerStatement = conn.prepareStatement(customerQuery);
+				prepCustomerStatement.setString(1, barcodeID);
+				customerRS = prepCustomerStatement.executeQuery();
+
+				if (customerRS.next()) {
+					customerName = customerRS.getString("customerName");
+				} else {
+					customerName = "No customer";
+				}
+
 				if (!(filterBlocked && blockStatus.equals("Not blocked"))) {
 					pallets.add(new Pallet(rs.getString("barCodeID"),
 							productName, rs.getString("orderID"),
 							productionDate, rs.getString("deliveryDate"),
-							blockStatus));
+							blockStatus, customerName));
 				}
 			}
 
@@ -266,6 +289,7 @@ public class Database {
 			close(prepBlockStatement);
 			close(blockRS);
 			close(rs);
+			close(customerRS);
 		}
 
 		return result;
@@ -414,20 +438,8 @@ public class Database {
 	}
 
 	public String blockPallet(int palletNbr) {
-		// TODO Ska vi tillåta detta?
+		// TODO Ska vi tillï¿½ta detta?
 		return null;
-	}
-
-	/*
-	 * Returns info about pallets delivered to the given customer. Optionally
-	 * filters delivered pallets.
-	 */
-	public String getPalletInfoByCustomer(String customerName) {
-		String statement = "select * from pallets left outer join orderCookies "
-				+ "where customerName = '"
-				+ customerName
-				+ "' and deliveryDate is not null";
-		return getPalletInfoInternal(statement, false);
 	}
 
 }

@@ -21,7 +21,6 @@ public class GUI {
 	
 		JFrame frame = new JFrame("Cookie Database");
 		tabbedPane = new JTabbedPane();
-
 		PalletManagerPane palletManagerPane = new PalletManagerPane(db);
 		PalletCreatorPane palletCreatorPane = new PalletCreatorPane(db);
 		
